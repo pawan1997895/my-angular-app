@@ -1,0 +1,57 @@
+<div class="pay-now-container">
+  <div class="card">
+    <h1>Pay Loan EMI</h1>
+    <div class="form-group">
+      <label for="accountNumber">Account Number</label>
+      <input
+        type="text"
+        id="accountNumber"
+        placeholder="Enter your file number"
+        [(ngModel)]="accountNumber"
+        class="form-control"
+      />
+    </div>
+    <button *ngIf="!consumerDetails" class="btn" (click)="onGetDetails()" [disabled]="isLoading">
+      {{ isLoading ? 'Loading...' : 'Get Details' }}
+    </button>
+
+    <!-- Display error message if any -->
+    <div *ngIf="errorMessage" class="error-message" [innerHTML]="errorMessage"></div>
+
+    <!-- Display consumer details if fetched -->
+    <div *ngIf="consumerDetails" class="consumer-details">
+      <h2>Consumer Details</h2>
+      <p><strong>Name:</strong> {{ consumerDetails.name }}</p>
+      <p><strong>Due Date:</strong> {{ consumerDetails.dueDate }}</p>
+      <p *ngIf="phoneNumber"><strong>Phone Number:</strong> {{ phoneNumber }}</p>
+      <div class="form-group">
+        <label>Amount</label>
+        <input
+          type="text"
+          [(ngModel)]="consumerDetails.amount"
+          class="form-control"
+          pattern="[0-9]+(\.[0-9]{1,2})?"
+          (input)="restrictToNumber($event)"
+          placeholder="Enter amount"
+        />
+      </div>
+      <div class="form-group">
+        <label for="phoneNumber">Phone Number (Optional)</label>
+        <input
+          type="text"
+          id="phoneNumber"
+          placeholder="Enter your 10-digit phone number (optional)"
+          [(ngModel)]="phoneNumber"
+          class="form-control"
+        />
+      </div>
+      <button
+        class="btn"
+        (click)="onProceedToPay()"
+        [disabled]="isLoading"
+      >
+        {{ isLoading ? 'Processing...' : 'Proceed to Pay' }}
+      </button>
+    </div>
+  </div>
+</div>
