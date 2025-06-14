@@ -133,6 +133,17 @@ export class PayNowComponent {
       paymentPayload.number = this.phoneNumber;
     }
 
+    // Open a temporary window to avoid popup blocker
+    const tempWindow = window.open('', '_blank');
+    if (!tempWindow) {
+      this.errorMessage = this.sanitizer.bypassSecurityTrustHtml(
+        'Popup blocked. Please allow popups in Safari (Settings > Safari > Block Pop-ups > Off) and try again, or <a href="#" class="fallback-link">click here</a> to proceed with payment.'
+      ) as string;
+      this.isLoading = false;
+      this.cdr.detectChanges();
+      return;
+    }
+
     const apiUrl = 'https://api.perfectfinmart.xyz/api/v1/wp-payment';
 
     this.http.post(apiUrl, paymentPayload, {
@@ -146,18 +157,18 @@ export class PayNowComponent {
           if (response.message === 'Success' && response.data?.link) {
             try {
               const paymentUrl = new URL(response.data.link);
-              const newWindow = window.open(paymentUrl.toString(), '_blank');
-              if (!newWindow) {
-                const linkHtml = `Popup blocked. Please click <a href="${paymentUrl.toString()}" target="_blank">here</a> to proceed with payment.`;
-                this.errorMessage = this.sanitizer.bypassSecurityTrustHtml(linkHtml) as string;
-              }
+              tempWindow.location.href = paymentUrl.toString();
             } catch (error) {
-              console.error('Invalid payment URL or failed to open:', error);
-              this.errorMessage = 'Invalid payment URL. Please try again or contact support.';
+              console.error('Invalid payment URL:', error);
+              tempWindow.close();
+              this.errorMessage = this.sanitizer.bypassSecurityTrustHtml(
+                `Invalid payment URL. Please try again or <a href="${response.data.link}" class="fallback-link">click here</a> to proceed with payment.`
+              ) as string;
               this.isLoading = false;
               this.cdr.detectChanges();
             }
           } else {
+            tempWindow.close();
             this.errorMessage = 'Failed to generate payment link. Please try again.';
             this.isLoading = false;
             this.cdr.detectChanges();
@@ -165,13 +176,16 @@ export class PayNowComponent {
         },
         error: (error) => {
           console.error('Error initiating payment:', error);
-          this.errorMessage = error.name === 'TimeoutError'
-            ? 'Payment request timed out. Please try again.'
-            : error.status === 0
-              ? 'Unable to reach the payment server. Please check your network or allow popups.'
-              : error.status === 401 || error.status === 403
-                ? 'Authorization error: Unable to process payment. Please contact support.'
-                : `Failed to initiate payment: ${error.message || 'Unknown error'}`;
+          tempWindow.close();
+          this.errorMessage = this.sanitizer.bypassSecurityTrustHtml(
+            error.name === 'TimeoutError'
+              ? 'Payment request timed out. Please try again.'
+              : error.status === 0
+                ? 'Unable to reach the payment server. Please check your network, allow popups in Safari (Settings > Safari > Block Pop-ups > Off), or <a href="#" class="fallback-link">click here</a> to proceed.'
+                : error.status === 401 || error.status === 403
+                  ? 'Authorization error: Unable to process payment. Please contact support.'
+                  : `Failed to initiate payment: ${error.message || 'Unknown error'}`
+          ) as string;
           this.isLoading = false;
           this.cdr.detectChanges();
         },

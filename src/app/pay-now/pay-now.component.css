@@ -95,6 +95,13 @@ label {
   margin-top: 10px;
 }
 
+.error-message a.fallback-link {
+  color: #007bff;
+  text-decoration: underline;
+  font-weight: bold;
+  cursor: pointer;
+}
+
 .consumer-details {
   margin-top: 20px;
   text-align: left;
@@ -108,4 +115,10 @@ label {
 
 .consumer-details p strong {
   font-weight: bold;
+}
+
+.loading-message {
+  font-size: 14px;
+  color: #333;
+  margin-top: 10px;
 }

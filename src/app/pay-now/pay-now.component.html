@@ -52,6 +52,7 @@
       >
         {{ isLoading ? 'Processing...' : 'Proceed to Pay' }}
       </button>
+      <p *ngIf="isLoading" class="loading-message">Redirecting to payment page...</p>
     </div>
   </div>
 </div>
